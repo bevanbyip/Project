@@ -214,3 +214,171 @@ m.save(output)
 webbrowser.open(output)
 
 print("✅ All airports loaded successfully:", output)
+
+
+
+
+
+
+#############check box 
+
+
+import folium
+import os
+import webbrowser
+from folium import Element
+
+# =========================
+# BASE MAP (GOOGLE-MAP STYLE)
+# =========================
+m = folium.Map(
+    location=[20, 0],
+    zoom_start=2,
+    tiles="CartoDB Positron",
+    width="100%",
+    height="100vh",
+    world_copy_jump=True,
+    no_wrap=False
+)
+
+# =========================
+# DATA WITH ONLINE IMAGES
+# =========================
+smart_airports = [
+    {
+        "Rank": 1,
+        "Name": "Incheon Airport",
+        "Location": "South Korea",
+        "Smart Technologies": "IoT integration, automated immigration, digital wayfinding",
+        "Additional Details": "Facial recognition SmartPass and AI robots",
+        "Image": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Incheon_International_Airport_T2.jpg",
+        "lat": 37.4691,
+        "lon": 126.4505
+    },
+    {
+        "Rank": 2,
+        "Name": "Hong Kong International Airport",
+        "Location": "Hong Kong",
+        "Smart Technologies": "Biometric check-in and Flight Token Travel",
+        "Additional Details": "CT-based smart security screening",
+        "Image": "https://tse4.mm.bing.net/th/id/OIP.K-e8XhgSWed7ZOATlOcQtwHaE7?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "lat": 22.3080,
+        "lon": 113.9146
+    }
+]
+
+sustainable_airports = [
+    {
+        "Rank": 1,
+        "Name": "Denver International Airport",
+        "Location": "USA",
+        "Sustainable Elements": "Largest airport solar power farm",
+        "Additional Details": "150-acre solar array and recycling systems",
+        "Image": "https://upload.wikimedia.org/wikipedia/commons/8/85/Denver_International_Airport_terminal.jpg",
+        "lat": 39.8561,
+        "lon": -104.6737
+    }
+]
+
+hybrid_airports = [
+    {
+        "Rank": 1,
+        "Name": "Singapore Changi Airport",
+        "Location": "Singapore",
+        "Smart Technologies": "Biometrics and AI automation",
+        "Sustainable Elements": "Solar panels and rainwater harvesting",
+        "Additional Details": "Jewel Changi sustainable architecture",
+        "Image": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Jewel_Changi_Airport.jpg",
+        "lat": 1.3644,
+        "lon": 103.9915
+    }
+]
+
+# ==================================================
+# ✅ YOUR POPUP LOGIC (WITH IMAGE SUPPORT)
+# ==================================================
+def create_popup_content(airport, category):
+    html = f"""
+        <b>{airport['Name']}</b> ({category})<br>
+        <b>Rank:</b> {airport['Rank']}<br>
+        <b>Location:</b> {airport['Location']}<br><br>
+    """
+
+    # ✅ IMAGE
+    if "Image" in airport:
+        html += f"""
+        <img src="{airport['Image']}"
+             style="width:100%; max-width:300px; border-radius:8px;"><br><br>
+        """
+
+    if category in ["Smart", "Hybrid"]:
+        html += f"<b>Smart Technologies:</b> {airport['Smart Technologies']}<br>"
+
+    if category in ["Sustainable", "Hybrid"]:
+        html += f"<b>Sustainable Elements:</b> {airport['Sustainable Elements']}<br>"
+
+    html += f"<b>Additional Details:</b> {airport['Additional Details']}"
+    return html
+
+# =========================
+# LAYERS (FOR CHECKBOX CONTROL)
+# =========================
+smart_layer = folium.FeatureGroup(name="Smart Airports")
+sustainable_layer = folium.FeatureGroup(name="Sustainable Airports")
+hybrid_layer = folium.FeatureGroup(name="Hybrid Airports")
+
+for a in smart_airports:
+    folium.Marker(
+        [a["lat"], a["lon"]],
+        popup=folium.Popup(create_popup_content(a, "Smart"), max_width=350),
+        icon=folium.Icon(color="blue", icon="plane", prefix="fa")
+    ).add_to(smart_layer)
+
+for a in sustainable_airports:
+    folium.Marker(
+        [a["lat"], a["lon"]],
+        popup=folium.Popup(create_popup_content(a, "Sustainable"), max_width=350),
+        icon=folium.Icon(color="green", icon="leaf", prefix="fa")
+    ).add_to(sustainable_layer)
+
+for a in hybrid_airports:
+    folium.Marker(
+        [a["lat"], a["lon"]],
+        popup=folium.Popup(create_popup_content(a, "Hybrid"), max_width=350),
+        icon=folium.Icon(color="purple", icon="plane", prefix="fa")
+    ).add_to(hybrid_layer)
+
+smart_layer.add_to(m)
+sustainable_layer.add_to(m)
+hybrid_layer.add_to(m)
+
+# =========================
+# LAYER CONTROL (LIKE GOOGLE MAP)
+# =========================
+folium.LayerControl(collapsed=False).add_to(m)
+
+# =========================
+# RESIZE FIX
+# =========================
+resize_fix = Element("""
+<script>
+setTimeout(function() {
+    window.dispatchEvent(new Event('resize'));
+}, 500);
+</script>
+""")
+m.get_root().html.add_child(resize_fix)
+
+# =========================
+# SAVE & OPEN
+# =========================
+output_path = os.path.join(
+    os.path.expanduser("~"),
+    "Desktop",
+    "BevanHP_Airports_With_Photos.html"
+)
+
+m.save(output_path)
+webbrowser.open(output_path)
+
+print("✅ Map created with image popups:", output_path)
